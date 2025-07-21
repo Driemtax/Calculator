@@ -1,10 +1,12 @@
+package parser
+
 // Package parser implements a recursive descent parser for mathematical expressions.
 //
 // The parser uses the following EBNF grammar:
 //
 //	exp     -> product (('+' | '-') product)*
 //	product -> factor (('*' | '/') factor)*
-//	factor  -> '(' exp ')' | NUMBER
+//	factor  -> (sin|cos|tan)? '(' exp ')' |NUMBER
 //
 // Parse parses a slice of tokens representing a mathematical expression and returns
 // the evaluated result as a float64. It ensures all tokens are consumed during parsing.
@@ -14,11 +16,9 @@
 // parseProduct handles multiplication and division operations with left associativity.
 //
 // parseFactor handles parenthesized expressions and numeric literals.
-package parser
 
 import (
 	"errors"
-	"fmt"
 	"math"
 	"slices"
 	"strconv"
@@ -29,44 +29,12 @@ import (
 // Parse parses a slice of tokens representing a mathematical expression and returns
 // the evaluated result as a float64. It ensures all tokens are consumed during parsing.
 func Parse(tokens []string) (float64, error) {
-	result, tokenRest, err := parseFunction(tokens)
+	result, tokenRest, err := parseExpression(tokens)
 	if len(tokenRest) != 0 {
 		err = errors.Join(err, errors.New("still tokens left"))
 	}
 
 	return result, err
-}
-
-func parseFunction(tokens []string) (float64, []string, error) {
-	operators := []string{"sin", "cos", "tan"}
-	var result float64
-	var tokenRest []string
-	var err error
-
-	if slices.Contains(operators, tokens[0]) {
-		if tokens[1] != "(" {
-			err = errors.New("did you miss a '('?")
-			return result, tokenRest, err
-		}
-		fmt.Printf("Before iterating with: %q\n", tokens)
-		result, tokenRest, err = parseExpression(tokens[1:])
-
-		fmt.Printf("Result: %2f, TokenRest: %q\n", result, tokenRest)
-		// now calculate the actual sin,cos, or tan of the result
-		switch tokens[0] {
-		case "sin":
-			result = math.Sin(result)
-		case "cos":
-			result = math.Cos(result)
-		case "tan":
-			result = math.Tan(result)
-		}
-	} else {
-		fmt.Printf("Function again: %q\n", tokens)
-		result, tokenRest, err = parseExpression(tokens)
-	}
-
-	return result, tokenRest, err
 }
 
 func parseExpression(tokens []string) (float64, []string, error) {
@@ -114,9 +82,7 @@ func parseFactor(tokens []string) (float64, []string, error) {
 	tokenRest := tokens
 
 	if tokenRest[0] == "(" {
-		fmt.Printf("Factor: %q\n", tokenRest)
-		result, tokenRest, err = parseFunction(tokens[1:])
-		fmt.Printf("After Function: %2f, %q\n", result, tokenRest)
+		result, tokenRest, err = parseExpression(tokens[1:])
 		if len(tokenRest) == 0 {
 			return result, tokenRest, err
 		}
@@ -126,12 +92,32 @@ func parseFactor(tokens []string) (float64, []string, error) {
 			return result, tokenRest, err
 		}
 	} else if slices.Contains(operators, tokenRest[0]) {
-		result, tokenRest, err = parseFunction(tokens)
-		if len(tokenRest) == 0 {
+		if tokens[1] != "(" {
+			err = errors.New("did you miss a '('?")
 			return result, tokenRest, err
 		}
+
+		result, tokenRest, err = parseExpression(tokens[2:])
+
+		if !(tokenRest[0] == ")") {
+			errorMessage := "')' expexted, got " + tokenRest[0]
+			err = errors.New(errorMessage)
+			return result, tokenRest, err
+		}
+
+		// now calculate the actual sin,cos, or tan of the result
+		// we need to convert from degrees to radians first since the
+		// math functions expect radians, but most people input degrees
+		radians := result * math.Pi / 180
+		switch tokens[0] {
+		case "sin":
+			result = math.Sin(radians)
+		case "cos":
+			result = math.Cos(radians)
+		case "tan":
+			result = math.Tan(radians)
+		}
 	} else {
-		fmt.Printf("Number: %s\n", tokenRest[0])
 		result, num = isNumber(tokenRest[0])
 		if !(num) {
 			errorMessage := "Number expected, got " + tokenRest[0]
@@ -140,7 +126,6 @@ func parseFactor(tokens []string) (float64, []string, error) {
 		}
 	}
 
-	fmt.Printf("Returning: %2f, %q\n", result, tokenRest)
 	return result, tokenRest[1:], err
 }
 
