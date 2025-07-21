@@ -8,7 +8,8 @@ import (
 
 // Tokenize breaks down a mathematical expression string into individual tokens.
 // It recognizes numbers (integers), arithmetic operators (+, -, *, /),
-// parentheses, and filters out whitespace and tabs.
+// parentheses, functions, pi and filters out whitespace and tabs.
+// It also replaces constants like pi with its acutal value.
 //
 // The function returns a slice of strings where each string represents
 // a single token from the input expression.

@@ -15,7 +15,7 @@ package parser
 //
 // parseProduct handles multiplication and division operations with left associativity.
 //
-// parseFactor handles parenthesized expressions and numeric literals.
+// parseFactor handles parenthesized expressions, functions and numeric literals.
 
 import (
 	"errors"
@@ -83,9 +83,6 @@ func parseFactor(tokens []string) (float64, []string, error) {
 
 	if tokenRest[0] == "(" {
 		result, tokenRest, err = parseExpression(tokens[1:])
-		if len(tokenRest) == 0 {
-			return result, tokenRest, err
-		}
 		if !(tokenRest[0] == ")") {
 			errorMessage := "')' expexted, got " + tokenRest[0]
 			err = errors.New(errorMessage)
