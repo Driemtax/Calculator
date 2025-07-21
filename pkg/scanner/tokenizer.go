@@ -1,6 +1,8 @@
 package scanner
 
 import (
+	"fmt"
+	"math"
 	"regexp"
 )
 
@@ -17,10 +19,14 @@ import (
 //	// Returns: ["2", "+", "3", "*", "(", "4", "-", "1", ")"]
 func Tokenize(expression string) []string {
 	var tokenList = []string{}
-	re := regexp.MustCompile(`\d+|[+\-*/()]|sin|cos|tan`)
+	re := regexp.MustCompile(`\d+|[+\-*/()]|sin|cos|tan|pi`)
 	tokenList = re.FindAllString(expression, -1)
 
 	// Replace constants for pi support
-
+	for i, token := range tokenList {
+		if token == "pi" {
+			tokenList[i] = fmt.Sprintf("%f", math.Pi)
+		}
+	}
 	return tokenList
 }
