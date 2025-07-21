@@ -17,8 +17,10 @@ import (
 //	// Returns: ["2", "+", "3", "*", "(", "4", "-", "1", ")"]
 func Tokenize(expression string) []string {
 	var tokenList = []string{}
-	re := regexp.MustCompile(`\d+|[+\-*/()]`)
+	re := regexp.MustCompile(`\d+|[+\-*/()]|sin|cos|tan`)
 	tokenList = re.FindAllString(expression, -1)
+
+	// Replace constants for pi support
 
 	return tokenList
 }
