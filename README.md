@@ -8,13 +8,14 @@ Evaluates mathematical expressions with proper operator precedence:
 - Basic operations: `+`, `-`, `*`, `/`
 - Parentheses for grouping: `(1 + 2) * 3`
 - Handles operator precedence correctly: `1 + 2 * 3` = `7`
+- Advanced operations like sin, tan, cos
 
 ## Grammar
 I decided to implement the following EBNF grammar, since it elimates left-recursion in a more efficent way then context-free grammars do.
 ```
 exp     -> product (('+' | '-') product)*
 product -> factor (('*' | '/') factor)*
-factor  -> '(' exp ')' | NUMBER
+factor  -> (sin|cos|tan)? '(' exp ')' |NUMBER
 ```
 
 ## Usage
@@ -33,6 +34,7 @@ import "github.com/driemtax/Calculator/pkg/calculator"
 result, err := calculator.Evaluate("(1 + 2) * 3")
 // result: 9.0
 ```
+Another [Example](https://github.com/Driemtax/codecrafters-shell-go/blob/master/app/main.go), where i used it as a cli tool in my own shell implementation
 
 ## Project Structure
 
